@@ -1,0 +1,138 @@
+'''
+With Quicksort, choosing the first number as a pivot, as our book does, can be horrendously bad
+if the list being sorted is already “almost” sorted.  In practice, this might happen quite frequently
+in real applications.  Often, you might add some values to an already sorted list and then re-sort.
+Choosing the first value would be disastrous leading to O(n^2) behavior.
+
+Create a 2nd version of quicksort by modifying the book’s code so that it uses the “median of 3” method to select a pivot.
+This involves looking at the first value in a list, the last value in the list, and the value that occurs in the middle of a list.
+Choose the value that is the median of those three.   That value should then be swapped with the list’s “first” value.
+Now, conduct 2 experiments:
+
+In the first experiment, compare the book’s original implementation of quicksort with this modified version of quicksort
+with randomized lists from length 100 up to 10,000.   Produce and submit the corresponding graph.
+
+In the second experiment, you will use arrays that are “almost” sorted.   Let the first 90% of the list be filled with
+consecutive (and increasing) values.  Only the last 10% will be random.  Produce and submit the corresponding graph.
+You may even find that you can’t run the original quicksort algorithm for the larger list sizes. '''
+
+#Median of 3 Unsorted
+
+import random
+import time
+
+question1="Use Median of 3 Method (Y/N):"
+medianof3=input(question1)
+question2="Sort first 90% (Y/N):"
+sortFirst90=input(question2)
+print('sort time', '\t', 'tableSize')
+
+def quickSort(alist):
+    quickSortHelper(alist,0,len(alist)-1)      #--median of 3
+
+def quickSortHelper(alist,first,last):
+   if first<last:
+       splitpoint = partition(alist,first,last)
+       quickSortHelper(alist,first,splitpoint-1)
+       quickSortHelper(alist,splitpoint+1,last)
+
+def partition(alist,first,last):
+   pivotvalue = alist[first]
+   leftmark = first+1
+   rightmark = last
+   done = False
+   while not done:
+
+       while leftmark <= rightmark and alist[leftmark] <= pivotvalue:
+           leftmark = leftmark + 1
+
+       while alist[rightmark] >= pivotvalue and rightmark >= leftmark:
+           rightmark = rightmark -1
+
+       if rightmark < leftmark:
+           done = True
+       else:
+           temp = alist[leftmark]
+           alist[leftmark] = alist[rightmark]
+           alist[rightmark] = temp
+
+   temp = alist[first]
+   alist[first] = alist[rightmark]
+   alist[rightmark] = temp
+
+   return rightmark
+
+
+''' --- LOOP TO CREATE TABLE AT VARIOUS SIZES AND THEN CALCULATE SIZE AT 100,90,50,10 PERCENT --- '''
+totalStart = time.time()
+myTable = []
+for s in range(100, 20000, 100): #creates table size in increments of 100
+    myTable =[]
+    #for s in range(100, 10000, 100):  # creates table size in increments of 100
+    tableSize = s
+    #print ('TableSize ', tableSize)
+    s90pct = int            #initialize table size at 90 percent
+    s10pct = int            #initialize table size at 10 percent
+    s90pct = round(tableSize*.9)   #calculate 90 percent of table size.  This is the first part of the table - sorted
+    s50pct = round(tableSize/2)
+    s10pct = round(tableSize-s90pct)          #calcluate 10 pecent of table size.  Use diff of tablesize and 90 percent to avoid rounding and creating a smaller table.,  This will be the last part of the table - unsorted
+
+    for i in range(0, s90pct):                      #__create the first 90 percent of table with random numbers
+        myTable.append(random.randint(0, 10000))
+
+    if sortFirst90 == 'Y' or sortFirst90 =='y':     #__Sort 90% of table if Y was entered
+        myTable.sort()
+
+    for j in range(0, s10pct):                      #__create the last 10 percent of the table with random numbers
+        myTable.append(random.randint(0, 10000))
+
+    # print('myTable 90 percent = ', myTable)
+    # for j in range(0, s10pct): #create teh last 10 percent of the table with random numbers
+    #     myTable.append(random.randint(0, 1000))
+    # #print('myTable 10 percent = ', myTable)
+
+
+    '''--- FIND THE MEDIAN OF 3 ---'''
+    if medianof3 == 'Y' or medianof3 =='y':
+        #print('myTable before sort=',myTable)
+        #print ('mytable0 - first value =',myTable[0])
+        #print ('mytablesize-1 - last value =',myTable[tableSize-1])
+        #print('mytables50pct - middle value',myTable[s50pct-1])
+        a = int(myTable[0])                 #first value in table
+        b = int(myTable[tableSize-1])       #last value in table
+        c = int(myTable[s50pct-1])          #middle number in table
+        #print('values of abc = ', a, b, c)
+        if a > b:
+            if a < c:
+                median = a
+                medianPosition = 0
+            elif b > c:
+                median = b
+                medianPosition = tableSize-1
+            else:
+                median = c
+                medianPosition = s50pct-1
+        else:
+            if a > c:
+                median = a
+                medianPosition = 0
+            elif b < c:
+                median = b
+                medianPosition = tableSize-1
+            else:
+                median = c
+                medianPosition = s50pct-1
+        #print('median=',median, '  medianPosition=',medianPosition)
+        temp = myTable[0]
+        myTable[0] = median
+        myTable[medianPosition] = temp
+
+    start = time.time()
+    quickSort(myTable)
+    endTime=((time.time() - start))
+    #print('myTable After sort=', myTable)
+    #print('done using median of 3 -> ', myTable)
+    #print("It took %s seconds" % ((time.time() - start)))
+    #print("It took %s seconds" % ((time.time() - totalstart)))
+    print((endTime),'\t',tableSize)
+print("It took %s seconds" % ((time.time() - totalStart)))
